@@ -1,6 +1,6 @@
 ---
 title: "STAT/MATH 495: Problem Set 07"
-author: "WRITE YOUR NAME(S) HERE"
+author: "Daniel Njoo"
 date: "2017-10-24"
 output:
   html_document:
@@ -32,13 +32,9 @@ submission <- read_csv("data/sampleEntry.csv")
 
 Information on the competition can be found [here](https://www.kaggle.com/c/GiveMeSomeCredit/data).
 
-
-
 # Collaboration
 
-Please indicate who you collaborated with on this assignment: 
-
-
+N/A
 
 # Build binary classifier
 
@@ -46,16 +42,32 @@ Build the binary classifier based on a single predictor variable: `DebtRatio`,
 `age`, or `MonthlyIncome`. Justify this choice.
 
 ```{r}
+findbestpred<-function(pred){
+  temp<-as.formula(SeriousDlqin2yrs~pred) 
+  glm(temp, data=train, family='binomial') %>% 
+    broom::tidy(conf.int=TRUE)
+}
+
+findbestpred(train$DebtRatio) #pvalue 2.386904e-05
+findbestpred(train$age) #pvalue 0.000000e+00
+findbestpred(train$MonthlyIncome) #pvalue 1.185516e-54
 
 ```
 
+`MonthlyIncome` appears to be the best predictor out of the 3 predictors, evidenced by the lowest pvalue of 1.185516e-54.
 
+```{r}
+train2<-train %>% arrange(MonthlyIncome)
+fmod<-bayesglm(as.formula(SeriousDlqin2yrs~MonthlyIncome), data=train2, family="binomial")
+```
 
 # ROC curve
 
 Based on the ultimate classifier you choose, plot a corresponding ROC curve.
 
 ```{r}
+predpr <- predict(fmod,type=c("response"))
+roc(predpr,test)
 
 ```
 
