@@ -56,20 +56,10 @@ findbestpred(train$MonthlyIncome) #pvalue 1.185516e-54
 
 `MonthlyIncome` appears to be the best predictor out of the 3 predictors, evidenced by the lowest pvalue of 1.185516e-54.
 
-```{r}
-train2<-train %>% arrange(MonthlyIncome)
-fmod<-bayesglm(as.formula(SeriousDlqin2yrs~MonthlyIncome), data=train2, family="binomial")
-```
-
 # ROC curve
 
 Based on the ultimate classifier you choose, plot a corresponding ROC curve.
 
-```{r}
-predpr <- predict(fmod,type=c("response"))
-roc(predpr,test)
-
-```
 
 
 
