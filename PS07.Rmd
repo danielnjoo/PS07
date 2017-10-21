@@ -34,7 +34,7 @@ Information on the competition can be found [here](https://www.kaggle.com/c/Give
 
 # Collaboration
 
-N/A
+Help from [here](https://rudeboybert.github.io/STAT495/quickstart.html)
 
 # Build binary classifier
 
@@ -49,7 +49,7 @@ findbestpred<-function(pred){
 }
 
 findbestpred(train$DebtRatio) #pvalue 2.386904e-05
-findbestpred(train$age) #pvalue 0.000000e+00
+findbestpred(train$age) #pvalue 0.000000e+00 => p-value < 1.185516e-54
 findbestpred(train$MonthlyIncome) #pvalue 1.185516e-54
 
 ```
@@ -60,8 +60,21 @@ findbestpred(train$MonthlyIncome) #pvalue 1.185516e-54
 
 Based on the ultimate classifier you choose, plot a corresponding ROC curve.
 
+```{r}
+library(ROCR)
+profiles_train_augmented <- as.formula(SeriousDlqin2yrs~age) %>% glm(data=train, family='binomial')  %>% 
+  broom::augment() %>% 
+  as_tibble() %>% 
+  mutate(p_hat=1/(1+exp(-.fitted)))
 
+pred <- prediction(predictions = profiles_train_augmented$p_hat, labels = profiles_train_augmented$SeriousDlqin2yrs)
+perf <- performance(pred, "tpr","fpr")
 
+#use @ to access slot 'name' of object, view all with slotNames, access one with slot(pred, 'name_of_slot), and sapply(slotNames(pred), function(x) length(slot(pred, x))) to see length of all slots (list of 1)
+auc <- as.numeric(performance(pred,"auc")@y.values)
+plot(perf, main=paste("Area Under the Curve =", round(auc, 3)))
+abline(c(0, 1), lty=2)
+```
 
 # ROC curve for random guessing
 
@@ -69,5 +82,17 @@ Instead of using any predictor information as you did above, switch your
 predictions to random guesses and plot the resulting ROC curve.
 
 ```{r}
+trainG <- train %>% mutate(guess=sample(0:1,nrow(train), replace=T))
+profiles_train_augmentedG <- as.formula(SeriousDlqin2yrs~guess) %>% glm(data=trainG, family='binomial')  %>%
+  broom::augment() %>% 
+  as_tibble() %>% 
+  mutate(p_hat=1/(1+exp(-.fitted)))
+
+predG <- prediction(predictions = profiles_train_augmentedG$p_hat, labels = profiles_train_augmentedG$SeriousDlqin2yrs)
+perfG <- performance(pred, "tpr","fpr")
+
+aucG <- as.numeric(performance(predG,"auc")@y.values)
+plot(perfG, main=paste("Area Under the Curve =", round(aucG, 3)))
+abline(c(0, 1), lty=2)
 
 ```
